@@ -12,53 +12,7 @@ import org.cook.graph {
 	Cycle
 }
 
-shared class TaskFilter(String filterString, Console console) {
-	
-	//shared Boolean filter() {
-	console.debug("Processing task filter ``filterString``");
-	
-	[String +] parts = filterString.split(":".equals).sequence();
-	
-	
-	Boolean (Task<> ) taskFilterFor(String taskName) {
-		if(taskName == "*") {
-			return (Task<> task) => true;
-		} else {
-			return (Task<> task) => task.name == taskName;
-		}
-	}
-	Boolean (ProjectPath) projectPathFilterFor(String filterString) {
-		if(filterString == "*") {
-			return (ProjectPath projectPath) => true;
-		} else {
-			String[] projectPathParts = filterString.split(".".equals).sequence();
-			return (ProjectPath projectPath) => projectPath.projectNames == projectPathParts;
-		}
-	}
-	
-	Boolean (Task<> ) taskFilter;
-	Boolean (ProjectPath ) projectPathFilter;
-	
-	if(parts.size == 1) {
-		String taskName = parts[0];
-		taskFilter = taskFilterFor(taskName); 
-		projectPathFilter = (ProjectPath projectPath) => true; 
-	} 
-	else if(parts.size == 2, exists String taskName = parts[1])
-	{
-		taskFilter = taskFilterFor(taskName); 
-		projectPathFilter = projectPathFilterFor(parts[0]); 
-	} else {
-		// Compile all
-		projectPathFilter = (ProjectPath projectPath) => true; 
-		taskFilter = (Task<> task) => true; 
-	}
-	
-	//	[Task<>, TaskPath][] found = project.findTasks((Task<> task, ProjectPath projectPath) => taskFilter(task) && projectPathFilter(projectPath));
-	//	return true;
-	//}
-	shared Boolean filter(Task<> task, ProjectPath projectPath) => taskFilter(task) && projectPathFilter(projectPath);
-}
+
 
 
 shared class Executor(
@@ -113,18 +67,18 @@ shared class Executor(
 			dumpAllTasks(project, describe);
 		}
 		
-		ArrayList<[Task<>, TaskPath]> matchingTasks = ArrayList<[Task<>, TaskPath]>();
+		ArrayList<Task<>> matchingTasks = ArrayList<Task<>>();
 		
 		if(nonempty filterStrings = cli.extraArgs) {
 			
-			value filters = [for(String filterString in filterStrings) TaskFilter(filterString, console)];
+			value filters = [for(String filterString in filterStrings) TaskFilter(filterString)];
 			
-			Boolean matchAnyFilter(Task<> task, ProjectPath projectPath) => 
-					filters.find((TaskFilter f) => f.filter(task, projectPath)) exists;
+			Boolean matchAnyFilter(Task<> task) => 
+					filters.find((TaskFilter f) => f.filter(task.taskPath())) exists;
 			
-			[Task<>, TaskPath][] found = project.findTasks(matchAnyFilter);
+			Task<>[] found = project.findTasks(matchAnyFilter);
 			
-			console.debug("Matched tasks `` {for(t in found) "``t[1]``"} ``");
+//			console.debug("Matched tasks `` {for(t in found) "``t[1]``"} ``");
 			matchingTasks.addAll(found);
 			//}
 		} else {
@@ -147,9 +101,7 @@ shared class Executor(
 		}
 	}
 	
-	Error? runTaskGraph (List<[Task<>, TaskPath]>  tasksWithPath) {
-		
-		Task<>[] tasks = tasksWithPath*.first;
+	Error? runTaskGraph (List<Task<>>  tasks) {
 		
 		IdentifiableGraph<Task<>> graph = IdentifiableGraph<Task<>>(tasks, (task) => task.dependencies.sequence()); // TODO:optimize task.dependencies.sequence
 		

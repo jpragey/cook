@@ -92,19 +92,17 @@ shared class Project(shared String name, shared String dirName = name) {
 		return result.sequence();
 	}
 	
-	shared default [Task<Anything>, TaskPath][] findTasks(
-		Boolean(Task<Anything>, ProjectPath) matcher) 
+	shared default Task<Anything>[] findTasks(
+		Boolean(Task<Anything>) matcher) 
 	{
-		ArrayList<[Task<Anything>, TaskPath]> result = ArrayList<[Task<Anything>, TaskPath]>();
+		ArrayList<Task<Anything>> result = ArrayList<Task<Anything>>();
 		
 		visitTasks {
 			visitor = object satisfies TaskVisitor {
 				
 				shared actual void before(Project project, Task<Anything> task) {
-					//assert(exists p = projectStack.last);
-					ProjectPath projectPath = project.projectPath;
-					if(matcher(task, projectPath)) {
-						result.add([task, TaskPath(projectPath, task.name)]);
+					if(matcher(task)) {
+						result.add(task);
 					}
 				}
 			};

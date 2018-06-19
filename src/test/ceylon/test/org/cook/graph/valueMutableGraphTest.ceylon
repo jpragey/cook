@@ -1,8 +1,27 @@
+import ceylon.collection {
+	LinkedList,
+	HashMap
+}
+import org.cook.graph {
+	ValueGraph,
+	Cycle
+}
+import test.org.cook.graph.matcher {
+	Matcher,
+	contains,
+	eq,
+	ObjectMatcher,
+	AttributeMatcher,
+	assertThat
+}
+import ceylon.test {
+	test
+}
 
 
 
 class ValueMutableGraphTest() {
-/***
+
     LinkedList<N> safeGet<N>(N key, Map<N, LinkedList<N>> map) given N satisfies Object {
         //if(res = exists map.get(map)) {
         //    
@@ -50,8 +69,8 @@ class ValueMutableGraphTest() {
 
         shared actual IntGraph initialGraph = IntGraph({0, 1, 2, 3, 4, 5}, initialGraphDeps);
         
-        shared actual Matcher<Anything> acyclicCopyResponse = isIntCycle(Cycle{0, 1, 2}); 
-        shared actual Matcher<Anything> sortedGraphResponse = isIntCycle(Cycle{0, 1, 2});
+        shared actual Matcher<Anything> acyclicCopyResponse = isIntCycle(Cycle([0, 1, 2])); 
+        shared actual Matcher<Anything> sortedGraphResponse = isIntCycle(Cycle([0, 1, 2]));
         
         value copiedGraphDeps = HashMap<Float, LinkedList<Float>> {
             0.0 ->LinkedList{1.0},    // cycle 0->1->2->0
@@ -137,7 +156,8 @@ class ValueMutableGraphTest() {
         shared actual Matcher<Anything> sortedGraphResponse => isInts(sortedGraph.nodes);
     }
     
-    test shared void copyGraphTest() {
+    test
+    shared void copyGraphTest() {
         {Fixture *} fixtures = {
             FixtureWithCycle(),
             AcyclicFixture0(),
@@ -206,6 +226,6 @@ class ValueMutableGraphTest() {
         assertThat(sortedGraph, fixture.sortedGraphResponse);
         
     }
-    */
+    
 }
 
