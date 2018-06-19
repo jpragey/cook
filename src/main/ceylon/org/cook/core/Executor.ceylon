@@ -34,7 +34,7 @@ shared class Executor(
 	void dumpAllTasks(Project project, void describe(String txt)) {
 		describe("All tasks:");
 		project.visitTasks(object satisfies TaskVisitor{
-			shared actual void before(Project project, Task<Anything> task) {
+			shared actual void before(Project project, Task task) {
 				describe("  ``project.projectPath`` ::: ``task.name``");	
 			}
 		}, true);
@@ -67,16 +67,16 @@ shared class Executor(
 			dumpAllTasks(project, describe);
 		}
 		
-		ArrayList<Task<>> matchingTasks = ArrayList<Task<>>();
+		ArrayList<Task> matchingTasks = ArrayList<Task>();
 		
 		if(nonempty filterStrings = cli.extraArgs) {
 			
 			value filters = [for(String filterString in filterStrings) TaskFilter(filterString)];
 			
-			Boolean matchAnyFilter(Task<> task) => 
+			Boolean matchAnyFilter(Task task) => 
 					filters.find((TaskFilter f) => f.filter(task.taskPath())) exists;
 			
-			Task<>[] found = project.findTasks(matchAnyFilter);
+			Task[] found = project.findTasks(matchAnyFilter);
 			
 //			console.debug("Matched tasks `` {for(t in found) "``t[1]``"} ``");
 			matchingTasks.addAll(found);
@@ -101,18 +101,18 @@ shared class Executor(
 		}
 	}
 	
-	Error? runTaskGraph (List<Task<>>  tasks) {
+	Error? runTaskGraph (List<Task>  tasks) {
 		
-		IdentifiableGraph<Task<>> graph = IdentifiableGraph<Task<>>(tasks, (task) => task.dependencies.sequence()); // TODO:optimize task.dependencies.sequence
+		IdentifiableGraph<Task> graph = IdentifiableGraph<Task>(tasks, (task) => task.dependencies.sequence()); // TODO:optimize task.dependencies.sequence
 		
 		switch(sortedTasks = graph.sort {
 			showCycle = true;
 			keepNodesOrder = true;
 		})
-		case(is Cycle<Task<>>) {
+		case(is Cycle<Task>) {
 			return Error("Task dependencies cycle found: ``sortedTasks.nodes*.name``");	// TODO: better explain cycle
 		}
-		case(is Task<>[]) {
+		case(is Task[]) {
 			for(task in sortedTasks) {
 				if(is Error err = task.execute(projectRootPath)) {
 					return err;

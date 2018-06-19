@@ -17,7 +17,7 @@ import org.cook.core.filesystem {
 }
 class TaskTest() 
 {
-	class DoNothingTask(String name) extends Task<TaskResult>(name) {
+	class DoNothingTask(String name) extends Task(name) {
 		
 		shared actual Error|TaskResult execute(AbsolutePath projectRootPath) => Error("DoNothingTask should not be executed.");
 		
@@ -30,7 +30,7 @@ class TaskTest()
 	shared void taskName() {
 		Project root = Project("root");
 		Project child = Project("child");
-		Task<TaskResult> task = DoNothingTask("aTask");
+		Task task = DoNothingTask("aTask");
 		
 		assertEquals(task.taskPath(), TaskPath(ProjectPath.root, "aTask"));
 		

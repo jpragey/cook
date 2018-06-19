@@ -21,8 +21,8 @@ shared class Project(shared String name, shared String dirName = name) {
 	MutableList<Project> internalChildren = ArrayList<Project>();
 	shared List<Project> children => internalChildren;
 	
-	MutableList<Task<>> internalTasks = ArrayList<Task<>>();
-	shared default {Task<> *} tasks => internalTasks;
+	MutableList<Task> internalTasks = ArrayList<Task>();
+	shared default {Task *} tasks => internalTasks;
 	
 	shared void updateParent(Project? newParent) {
 		this.parent = newParent;
@@ -71,12 +71,12 @@ shared class Project(shared String name, shared String dirName = name) {
 		}
 	}
 	
-	shared ChildTask addTask<ChildTask>(ChildTask child) given ChildTask satisfies Task<> {
+	shared ChildTask addTask<ChildTask>(ChildTask child) given ChildTask satisfies Task {
 		child.updateParent(this);
 		internalTasks.add(child);
 		return child;
 	}
-	shared void addAllTask(Task<>* children) {
+	shared void addAllTask(Task* children) {
 		children.each(addTask);
 	}
 	
@@ -92,15 +92,15 @@ shared class Project(shared String name, shared String dirName = name) {
 		return result.sequence();
 	}
 	
-	shared default Task<Anything>[] findTasks(
-		Boolean(Task<Anything>) matcher) 
+	shared default Task[] findTasks(
+		Boolean(Task) matcher) 
 	{
-		ArrayList<Task<Anything>> result = ArrayList<Task<Anything>>();
+		ArrayList<Task> result = ArrayList<Task>();
 		
 		visitTasks {
 			visitor = object satisfies TaskVisitor {
 				
-				shared actual void before(Project project, Task<Anything> task) {
+				shared actual void before(Project project, Task task) {
 					if(matcher(task)) {
 						result.add(task);
 					}

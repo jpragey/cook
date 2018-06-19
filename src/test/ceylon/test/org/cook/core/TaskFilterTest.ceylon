@@ -1,11 +1,9 @@
 import ceylon.test {
 	test,
-	assertTrue,
 	assertEquals
 }
 
 import org.cook.core {
-	StdConsole,
 	TaskFilter,
 	TaskPath,
 	ProjectPath
