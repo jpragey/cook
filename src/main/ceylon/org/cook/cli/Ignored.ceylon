@@ -1,0 +1,1 @@
+shared class Ignored(shared String ignoredArgument) {}

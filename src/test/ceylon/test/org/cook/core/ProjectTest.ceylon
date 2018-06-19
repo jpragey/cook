@@ -48,6 +48,10 @@ class ProjectTest()
 	
 	test
 	shared void testProjectPath() {
+		Project root = Project("root", "rootDir");
+		Project child0 = Project("child0", "child0Dir");
+		Project child1 = Project("child1", "child1Dir");
+		root.addChildrenProjects(child0, child1);
 		
 		assertEquals(root.projectPath, ProjectPath(["root"], ["rootDir"]));
 		assertEquals(child0.projectPath, ProjectPath(["root", "child0"], ["rootDir", "child0Dir"]));

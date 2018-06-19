@@ -1,4 +1,4 @@
-
+import org.cook.cli { CliError = Error }
 
 serializable
 shared 
@@ -14,6 +14,12 @@ class Error
 		this.causes = causes;
 		this.throwable = throwable;
 	}
+	
+	shared new fromCli(CliError cause) 
+		extends Error(cause.description, cause.causes.map(Error.fromCli).sequence())
+		{}
+	
+	
 	
 	shared actual String string => message;
 
