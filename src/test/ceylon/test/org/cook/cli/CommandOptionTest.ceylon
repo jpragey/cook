@@ -42,8 +42,12 @@ class CommandOptionTest()
 		{Bindable<CommandValue/*, SubOptionHelp*/> *} bindOptions = {stringOpt0, 
 				stringOpt1};
 
-		value commandHelps = bindOptions.narrow<BindableWithHelp<CommandValue, SubOptionHelp>>()*.help;
-		print("commandHelps: ``commandHelps``");
+		SubOptionHelp[] commandHelps = bindOptions.narrow<BindableWithHelp<CommandValue, SubOptionHelp>>()*.help;
+		String[] commandHelpStrings = commandHelps*.text;
+		
+		//print("commandHelps: ``commandHelpStrings``");
+		assert(commandHelpStrings.contains("Help on stringOpt0"));
+		assert(commandHelpStrings.contains("Help on stringOpt1"));
 		
 
 	}
