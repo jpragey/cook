@@ -9,6 +9,10 @@ import org.cook.cli {
 	CliError=Error,
 	Parser
 }
+import ceylon.json {
+	JsonObject,
+	parse
+}
 
 shared interface Cli 
 {
@@ -114,9 +118,20 @@ shared Cli|Error? parseCli(
 Error? printVersion(Anything (String) write) {
 	String resourcePath = "version.json";
 	if(exists resource = `module`.resourceByPath(resourcePath)) {
-		String version = resource.textContent("UTF8");
-		write(version);
-		return null;
+		String content = resource.textContent("UTF8");
+		if(is JsonObject o = parse(content)) {
+
+			if(exists String version = o.getStringOrNull("version")) {
+				write(version);
+				return null;
+				
+			} else {
+				return Error("Internal: ``resourcePath`` object has no 'version' attribute.");
+			}
+		} else {
+			return Error("Internal: Content of ``resourcePath`` is not a JSON object.");
+		}
+		
 	} else {
 		return Error("Resource path ``resourcePath`` not found.");
 		//write("Resource path ``resourcePath`` not found.");
