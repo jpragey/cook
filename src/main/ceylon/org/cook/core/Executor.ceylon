@@ -5,7 +5,8 @@ import ceylon.file {
 	current
 }
 import ceylon.collection {
-	ArrayList
+	ArrayList,
+	HashMap
 }
 import org.cook.graph {
 	IdentifiableGraph,
@@ -16,35 +17,83 @@ import org.cook.graph {
 
 
 shared class Executor(
-	//"Shell-type filter.
-	//  * at start means any project
-	//  * at end means any task
-	//  "
-	//String filterString,
 	AbsolutePath projectRootPath = AbsolutePath(current),
 	Console console = StdConsole(),
 	""
 	Integer successCode = 0,
 	Integer errorCode = 1,
-	//Anything (String ) writeError = console.error,
-	//Anything (String ) writeMessage = console.info,
 	String[] cliArgs = process.arguments
 ) 
 {
-	void dumpAllTasks(Project project, void describe(String txt)) {
-		describe("All tasks:");
+	shared void dumpAllTasks(Project project, void describe(String txt)) {
+		//describe("All tasks:");
+		class TaskInfo(shared String name, shared String? description) {}
+		
+		HashMap<Category, ArrayList<TaskInfo>> map = HashMap<Category, ArrayList<TaskInfo>> ();
+		value unclassified = ArrayList<TaskInfo>(); 
+		
 		project.visitTasks(object satisfies TaskVisitor{
 			shared actual void before(Project project, Task task) {
-				describe("  ``project.projectPath`` ::: ``task.name``");	
+				String taskName = task.name;
+				ArrayList<TaskInfo> list;
+				if(exists category = task.category) {
+					if(exists l = map.get(category)) {
+						list = l;
+					} else {
+						list = ArrayList<TaskInfo>();
+						map.put(category, list);
+					}
+				} else {
+					list = unclassified;
+				}
+				String ? description = task.description;
+				
+				list.add(TaskInfo(taskName, description) );
+				//describe("``project.projectPath`` - ``task.name``");	
 			}
 		}, true);
+		
+		void dumpCategory(String categoryName, ArrayList<TaskInfo> content) {
+			if(content.empty) {
+				return;
+			}
+			describe(categoryName);
+			describe("=".repeat(categoryName.size));
+			for(ti in content) {
+				describe("``ti.name``" + (if(exists d=ti.description) then " - ``d``" else "") );
+			}
+		}
+		for(cat->content in map) {
+			dumpCategory(cat.name, content);
+		}
+		dumpCategory("unclassified", unclassified);
+	}
+
+	"
+	 [[Error]]  if something went wrong
+	 [[true]] if processed succesfully
+	 [[false]] if it's not a predefined task.
+	 "
+	Error|Boolean dispatchPredefinedTasks(Project project, [String +] extraArgs) {
+		
+		switch(first = extraArgs.first)
+		case("tasks") {
+			dumpAllTasks(project, process.writeLine);
+		}
+		else {return false;}
+		return true;
+		
 	}
 	
 	shared Integer execute(Project project) {
 		
 		Cli cli;
 		
-		switch(c = parseCli(cliArgs, process.writeLine))
+		switch(c = parseCli {
+			cliArgs = cliArgs;
+			writeHelp = process.writeLine;
+			writeVersion = process.writeLine;
+		})
 		case(is Error) {
 			c.printIndented(console.error);
 			return errorCode;
@@ -60,16 +109,24 @@ shared class Executor(
 			if(cli.describe) {
 				console.info(txt);
 			}
-			
 		}
 		
 		if(cli.describe) {
 			dumpAllTasks(project, describe);
+			return successCode;
 		}
 		
 		ArrayList<Task> matchingTasks = ArrayList<Task>();
 		
 		if(nonempty filterStrings = cli.extraArgs) {
+
+			switch(res = dispatchPredefinedTasks(project, filterStrings)) 
+			case(is Error){
+				res.printIndented(console.error);
+				return errorCode;
+			}
+			case(true) {return successCode;}
+			else{}
 			
 			value filters = [for(String filterString in filterStrings) TaskFilter(filterString)];
 			

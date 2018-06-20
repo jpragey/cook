@@ -3,7 +3,8 @@ import org.cook.core.filesystem {
 }
 import ceylon.collection {
 	MutableList,
-	ArrayList
+	ArrayList,
+	HashMap
 }
 import ceylon.language.meta.model {
 	Attribute
@@ -14,6 +15,34 @@ shared interface TaskChecker {
 
 
 
+shared class Category(shared String name) {
+	shared actual String string => name;
+	shared actual Integer hash => name.hash;
+	shared actual Boolean equals(Object that) {
+		if (is Category that) {
+			return name==that.name;
+		}
+		else {
+			return false;
+		}
+	}
+}
+
+shared object categories {
+	
+	shared HashMap<String, Category> categories = HashMap<String, Category>{};
+	void add(Category category) => categories.put(category.name, category);
+	
+	shared Category build = Category("Build");
+	shared Category buildSetup = Category("Build Setup");
+	shared Category documentation = Category("Documentation");
+	shared Category help = Category("Help");
+	shared Category verification = Category("Verification");
+	
+	{build, buildSetup, documentation, help, verification}.each(add);
+	
+	shared Category ? byName(String name) => categories.get(name);
+}
 
 
 
@@ -39,10 +68,11 @@ shared abstract class Task (
 )
 	satisfies AbstractTask
 {
+	shared default {Input *} inputCacheElements = [];
+	shared default {Output *} outputCacheElements = [];
 	
-	shared formal {Input *} inputCacheElements;
-	shared formal {Output *} outputCacheElements;
-	
+	shared default Category? category = categories.byName(name);
+	shared default String? description = null;
 	
 	shared TaskPath taskPath() => makeTaskPath(project, name);
 	

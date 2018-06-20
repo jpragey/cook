@@ -60,6 +60,7 @@ shared Cli|Error? parseCli(
 	String[] cliArgs = process.arguments, 
 	Anything (String ) writeHelp = print, 
 	Anything (String ) writeVersion = print
+	 
 ) {
 	
 	BindableWithHelp<CliImpl, HelpTopic> helpOption = BooleanOption<CliImpl> {
@@ -95,6 +96,42 @@ shared Cli|Error? parseCli(
 		bindOptions = allOptions /*{classpathOption, helpOption}*/;
 		lastArgsHandler = lastArgsHandler;
 	}; 
+
+	"Print version on [[write]].
+	 Return null if OK."
+	Error? printVersion(Anything (String) write) {
+		String resourcePath = "version.json";
+		if(exists resource = `module`.resourceByPath(resourcePath)) {
+			String content = resource.textContent("UTF8");
+			if(is JsonObject o = parse(content)) {
+				
+				if(exists String version = o.getStringOrNull("version")) {
+					write(version);
+					return null;
+					
+				} else {
+					return Error("Internal: ``resourcePath`` object has no 'version' attribute.");
+				}
+			} else {
+				return Error("Internal: Content of ``resourcePath`` is not a JSON object.");
+			}
+			
+		} else {
+			return Error("Resource path ``resourcePath`` not found.");
+			//write("Resource path ``resourcePath`` not found.");
+		}
+	}
+	
+	void printHelp({HelpTopic *} helpDatas, Anything (String ) write) {
+		write("""cook - build system.
+		          ceylon run -- <build task name> [option]... <task filter>...
+		         """);
+		
+		for(h in helpDatas) {
+			write("  ``h.shortHelp``");
+		}
+	}
+	
 	
 	switch(Cli|CliError javacValues = parser.parse(cliArgs))
 	case (is Cli) {
@@ -105,7 +142,6 @@ shared Cli|Error? parseCli(
 		if(javacValues.version) {
 			return printVersion(writeVersion);
 		}
-		
 		//print("Application config: ``appConfig``");
 		return javacValues;
 	}
@@ -113,39 +149,4 @@ shared Cli|Error? parseCli(
 		return Error.fromCli(javacValues);
 	}
 }
-
-"Print error"
-Error? printVersion(Anything (String) write) {
-	String resourcePath = "version.json";
-	if(exists resource = `module`.resourceByPath(resourcePath)) {
-		String content = resource.textContent("UTF8");
-		if(is JsonObject o = parse(content)) {
-
-			if(exists String version = o.getStringOrNull("version")) {
-				write(version);
-				return null;
-				
-			} else {
-				return Error("Internal: ``resourcePath`` object has no 'version' attribute.");
-			}
-		} else {
-			return Error("Internal: Content of ``resourcePath`` is not a JSON object.");
-		}
-		
-	} else {
-		return Error("Resource path ``resourcePath`` not found.");
-		//write("Resource path ``resourcePath`` not found.");
-	}
-}
-
-void printHelp({HelpTopic *} helpDatas, Anything (String ) write) {
-	write("""cook - build system.
-	           ceylon run -- <build task name> [option]... <task filter>...
-	         """);
-	
-	for(h in helpDatas) {
-		write("  ``h.shortHelp``");
-	}
-}
-
 
