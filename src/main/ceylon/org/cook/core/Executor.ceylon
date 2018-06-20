@@ -1,19 +1,21 @@
-import org.cook.core.filesystem {
-	AbsolutePath
+import ceylon.collection {
+	ArrayList,
+	HashMap
 }
 import ceylon.file {
 	current
 }
-import ceylon.collection {
-	ArrayList,
-	HashMap
+
+import org.cook.core.filesystem {
+	AbsolutePath
 }
 import org.cook.graph {
 	IdentifiableGraph,
 	Cycle
 }
-
-
+import org.fusesource.jansi {
+	Ansi
+}
 
 
 shared class Executor(
@@ -58,9 +60,13 @@ shared class Executor(
 				return;
 			}
 			describe(categoryName);
-			describe("=".repeat(categoryName.size));
+			describe("-".repeat(categoryName.size));
 			for(ti in content) {
-				describe("``ti.name``" + (if(exists d=ti.description) then " - ``d``" else "") );
+				String s = Ansi.ansi()
+						.fg(Ansi.Color.green).a(ti.name)
+						.fg(Ansi.Color.yellow).a((if(exists d=ti.description) then " - ``d``" else ""))
+						.reset().string;
+				describe(s);
 			}
 		}
 		for(cat->content in map) {

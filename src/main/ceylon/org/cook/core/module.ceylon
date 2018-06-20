@@ -6,6 +6,9 @@ module org.cook.core "0.0.1"
 	shared import ceylon.io "1.3.3";
 	shared import ceylon.json "1.3.3";
 	
+	import maven:"org.fusesource.jansi:jansi" "1.17.1";
+
+	
 	shared import org.cook.cli "1.0.0";
 	shared import org.cook.graph "1.0.0";
 }
