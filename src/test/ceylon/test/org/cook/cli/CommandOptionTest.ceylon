@@ -2,7 +2,7 @@ import ceylon.test {
 	test
 }
 
-import org.jpragey.ceylon.cli {
+import org.cook.cli {
 	Bindable,
 	CommandOption,
 	StringOption,

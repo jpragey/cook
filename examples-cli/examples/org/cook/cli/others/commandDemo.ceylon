@@ -1,4 +1,4 @@
-import org.jpragey.ceylon.cli {
+import org.cook.cli {
 	Error,
 	BooleanOption,
 	StringOption,

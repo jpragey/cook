@@ -3,7 +3,7 @@ import ceylon.test {
 	assertEquals,
 	parameters
 }
-import org.jpragey.ceylon.cli {
+import org.cook.cli {
 	BooleanOption,
 	Parser
 }

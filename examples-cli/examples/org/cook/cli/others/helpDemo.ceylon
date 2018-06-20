@@ -2,7 +2,7 @@ import ceylon.collection {
 	ArrayList
 }
 
-import org.jpragey.ceylon.cli {
+import org.cook.cli {
 	BooleanOption,
 	Error,
 	StringOption,

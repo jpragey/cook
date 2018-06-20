@@ -14,7 +14,8 @@ import org.cook.graph {
 	Cycle
 }
 import org.fusesource.jansi {
-	Ansi
+	Ansi,
+	AnsiConsole
 }
 
 
@@ -29,6 +30,8 @@ shared class Executor(
 {
 	shared void dumpAllTasks(Project project, void describe(String txt)) {
 		//describe("All tasks:");
+		AnsiConsole.systemInstall();
+		
 		class TaskInfo(shared String name, shared String? description) {}
 		
 		HashMap<Category, ArrayList<TaskInfo>> map = HashMap<Category, ArrayList<TaskInfo>> ();

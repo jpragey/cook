@@ -2,7 +2,7 @@ import ceylon.collection {
 	LinkedList
 }
 
-import org.jpragey.ceylon.cli {
+import org.cook.cli {
 	BooleanOption,
 	Error,
 	Parser,
