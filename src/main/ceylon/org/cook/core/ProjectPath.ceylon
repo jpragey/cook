@@ -4,17 +4,22 @@ import org.cook.core.filesystem {
 shared class ProjectPath 
 {
 	"Names of projects, from root project"
-	shared String[] projectNames;
+	shared [String +] projectNames;
 	"Names of directories, from root project"
 	shared String[] projectDirNames;
 	
-	shared new (String[] projectNames = [], String[] projectDirNames = projectNames) {
+	shared new ([String +] projectNames, String[] projectDirNames = projectNames.rest) {
 		this.projectNames = projectNames;
 		this.projectDirNames = projectDirNames;
 	}
 
-	shared new root {
-		this.projectNames = [];
+	//shared new root(String rootName) {
+	//	this.projectNames = [rootName];
+	//	this.projectDirNames = [];
+	//}
+
+	shared new undefined {
+		this.projectNames = ["undefined"];
 		this.projectDirNames = [];
 	}
 
@@ -41,7 +46,10 @@ shared class ProjectPath
 			return projectNames==that.projectNames;
 	}
 	
-	shared actual String string =>":" + ":".join(projectNames);
+	shared actual String string =>":".join(projectNames) + " / " + ":".join(projectDirNames);
+	
+	shared String pathString => ":".join(projectNames);
+	shared String dirPathString => ":".join(projectDirNames);
 	
 	shared ProjectPath child(String projectName, String dirName = projectName) => 
 			ProjectPath(projectNames.append([projectName]), projectDirNames.append([dirName]));

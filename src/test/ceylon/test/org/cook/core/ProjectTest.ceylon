@@ -53,9 +53,9 @@ class ProjectTest()
 		Project child1 = Project("child1", "child1Dir");
 		root.addChildrenProjects(child0, child1);
 		
-		assertEquals(root.projectPath, ProjectPath(["root"], ["rootDir"]));
-		assertEquals(child0.projectPath, ProjectPath(["root", "child0"], ["rootDir", "child0Dir"]));
-		assertEquals(child1.projectPath, ProjectPath(["root", "child1"], ["rootDir", "child1Dir"]));
+		assertEquals(root.projectPath, ProjectPath(["root"], []));
+		assertEquals(child0.projectPath, ProjectPath(["root", "child0"], ["child0Dir"]));
+		assertEquals(child1.projectPath, ProjectPath(["root", "child1"], ["child1Dir"]));
 	}
 	
 	test

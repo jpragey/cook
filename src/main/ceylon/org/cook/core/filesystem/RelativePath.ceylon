@@ -42,6 +42,21 @@ shared class RelativePath satisfies Summable<RelativePath> {
 				else element)
 			.sequence();
 	
+	shared actual Boolean equals(Object that) {
+		if (is RelativePath that) {
+			return elements==that.elements /*&& 
+				elementStrings==that.elementStrings*/;
+		}
+		else {
+			return false;
+		}
+	}
+	shared actual Integer hash {
+		variable value hash = 1;
+		hash = 31*hash + elements.hash;
+		//hash = 31*hash + elementStrings.hash;
+		return hash;
+	}
 	
 	shared RelativePath append(<PathElement>* others) => RelativePath(*elements.append(others)); 
 	shared RelativePath appendPath(RelativePath other) => RelativePath(*elements.append(other.elements));

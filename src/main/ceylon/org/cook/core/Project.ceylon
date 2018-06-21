@@ -15,8 +15,8 @@ shared class Project(shared String name, shared String dirName = name) {
 	shared variable Project? parent = null;
 	shared ProjectPath projectPath => 
 			if(exists p = parent) 
-	then p.projectPath.child(name, dirName)
-	else ProjectPath([name], [dirName]);
+			then p.projectPath.child(name, dirName)
+			else ProjectPath([name]);
 	
 	MutableList<Project> internalChildren = ArrayList<Project>();
 	shared List<Project> children => internalChildren;

@@ -8,6 +8,7 @@ import org.cook.core.filesystem {
 shared class TaskPath(shared ProjectPath projectPath, shared String taskName) 
 {
 	shared String[] elements = projectPath.projectNames.append([taskName]);
+	shared String[] dirElements = projectPath.projectDirNames.append([taskName]);
 
 	shared actual Boolean equals(Object that) {
 		if (is TaskPath that) {

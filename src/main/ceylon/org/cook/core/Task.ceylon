@@ -56,10 +56,12 @@ shared interface AbstractTask {
 	
 }
 
-shared ProjectPath projectPath(Project? project) => if(exists p = project) then p.projectPath else ProjectPath.root;
+shared ProjectPath projectPath(Project? project) => 
+		project?.projectPath else ProjectPath.undefined 
+		;
 
-shared TaskPath makeTaskPath(Project? project, String taskName) => TaskPath(projectPath(project), taskName);
-
+shared TaskPath makeTaskPath(Project? project, String taskName) =>
+		TaskPath(projectPath(project), taskName);
 
 
 shared abstract class Task (
@@ -75,7 +77,6 @@ shared abstract class Task (
 	shared default String? description = null;
 	
 	shared TaskPath taskPath() => makeTaskPath(project, name);
-	
 	
 	shared MutableList<Task> dependencies = ArrayList<Task>();
 	shared MutableList<CacheElement> cacheElementDependencies = ArrayList<CacheElement>();

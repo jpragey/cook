@@ -32,12 +32,12 @@ class TaskTest()
 		Project child = Project("child");
 		Task task = DoNothingTask("aTask");
 		
-		assertEquals(task.taskPath(), TaskPath(ProjectPath.root, "aTask"));
+		assertEquals(task.taskPath(), TaskPath(ProjectPath.undefined, "aTask"));
 		
 		child.addAllTask(task);
-		assertEquals(task.taskPath(), TaskPath(ProjectPath(["child"]), "aTask"));
+		assertEquals(task.taskPath().dirElements, [ "aTask"]);
 
 		root.addChildrenProjects(child);
-		assertEquals(task.taskPath(), TaskPath(ProjectPath(["root", "child"]), "aTask"));
+		assertEquals(task.taskPath(), TaskPath(ProjectPath(["root", "child"], ["child"]), "aTask"));
 	}
 }
