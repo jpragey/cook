@@ -73,7 +73,7 @@ shared class Project(shared String name, shared String dirName = name) {
 		variable [Anything *] results = [];
 		for(task in tasks) {
 			switch(res = task.execute(projectRootPath))
-			case(is Error) {return res;}	
+			case(is Failed) {return res.cause;}	
 			else {
 				results = results.append([res]);
 			}

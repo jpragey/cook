@@ -6,7 +6,6 @@ import org.cook.core {
 	Executor,
 	Project,
 	Task,
-	Error,
 	TaskResult,
 	Success,
 	categories
@@ -25,12 +24,12 @@ class ExecutorTest()
 		project.addTask(object extends Task("task0", null) {
 			category = categories.build;
 			description = "Description of Task 0";
-			shared actual Error|TaskResult execute(AbsolutePath projectRootPath) => Success("");
+			shared actual TaskResult execute(AbsolutePath projectRootPath) => Success("");
 		});
 		project.addTask(object extends Task("task1", null) {
 			category = categories.build;
 			description = "Description of Task 1";
-			shared actual Error|TaskResult execute(AbsolutePath projectRootPath) => Success("");
+			shared actual TaskResult execute(AbsolutePath projectRootPath) => Success("");
 		});
 		
 		Executor().dumpAllTasks(project, sb.append);

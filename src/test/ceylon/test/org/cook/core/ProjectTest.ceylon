@@ -1,18 +1,18 @@
+import ceylon.collection {
+	ArrayList
+}
 import ceylon.test {
 	test,
 	assertEquals
 }
+
 import org.cook.core {
 	Project,
 	ProjectVisitor,
 	ProjectPath,
 	Task,
-	Error,
 	TaskResult,
 	Success
-}
-import ceylon.collection {
-	ArrayList
 }
 import org.cook.core.filesystem {
 	AbsolutePath
@@ -74,7 +74,7 @@ class ProjectTest()
 		child0.addChildrenProjects(child1);
 		
 		Task task = object extends Task("task", null) {
-			shared actual Error|TaskResult execute(AbsolutePath projectRootPath) => Success("");
+			shared actual TaskResult execute(AbsolutePath projectRootPath) => Success("");
 		};
 		child1.addAllTask(task);
 		

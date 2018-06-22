@@ -9,7 +9,6 @@ import ceylon.process {
 import org.cook.core {
 	Task,
 	categories,
-	Error,
 	TaskResult,
 	projectPath,
 	Project,
@@ -37,7 +36,7 @@ shared class JavaCompileTask(
 	category = categories.build;
 	
 	
-	shared actual Error|TaskResult execute(AbsolutePath root) {
+	shared actual TaskResult execute(AbsolutePath root) {
 		RelativePath basePath = projectPath(project).basePath; // Relative to root
 		
 		AbsolutePath projectBase = root.append(basePath);
@@ -48,7 +47,7 @@ shared class JavaCompileTask(
 			d.createDirectory(true);
 		}
 		
-		return doWithTemporaryDir("javacTmp_",  (AbsolutePath tmpdirPath) {
+		return doWithTemporaryDir<TaskResult>("javacTmp_",  (AbsolutePath tmpdirPath) {
 			// -- Javac temp files
 			Path classesFilePath = tmpdirPath.path.childPath("classes");
 			
@@ -62,7 +61,7 @@ shared class JavaCompileTask(
 			OverwriteFileOutput logFilePath(String fileName) => 
 					OverwriteFileOutput(tmpdirPath.path.childPath(fileName));
 			
-			ShellTaskResult|Error result = ShellExecution{
+			TaskResult result = ShellExecution{
 				command = "javac";
 				projectBasePath = basePath;
 				args = {
@@ -76,8 +75,6 @@ shared class JavaCompileTask(
 			return result;
 			
 		});
-
-		//return Success("");
 	}
 	
 }

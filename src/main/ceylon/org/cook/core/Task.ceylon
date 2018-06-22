@@ -71,7 +71,7 @@ shared abstract class Task (
 	shared MutableList<CacheElement> cacheElementDependencies = ArrayList<CacheElement>();
 	
 	"null : not executed yet"
-	shared variable <Error|TaskResult|Null> lastResult = null;
+	shared variable <TaskResult|Null> lastResult = null;
 	
 	shared void updateParent(Project ? newParent) {
 		this.project = newParent;
@@ -90,28 +90,19 @@ shared abstract class Task (
 		}
 	}
 
-	shared formal Error|TaskResult execute(AbsolutePath projectRootPath);
+	shared formal TaskResult execute(AbsolutePath projectRootPath);
 	
-	/***
-	shared default TaskExecutor<Result> executor => SimpleTaskExecutor<Result>(execute);
 	
-	shared actual default Error|TaskResult checkAndExecute(AbsolutePath projectRootPath) {
-		return executor.execute(projectRootPath);
-	}
-	 */
-	Error|TaskResult executeWithCache(<Error|TaskResult>(AbsolutePath) delegate) (AbsolutePath projectRootPath ) {
+	TaskResult executeWithCache(<TaskResult>(AbsolutePath) delegate) (AbsolutePath projectRootPath ) {
 		// TODO: implement it
 		return delegate(projectRootPath);
 	}
 	
-	Error|TaskResult checkDependenciesAndRun(<Error|TaskResult>(AbsolutePath) delegate) (AbsolutePath projectRootPath ) {
+	TaskResult checkDependenciesAndRun(TaskResult(AbsolutePath) delegate) (AbsolutePath projectRootPath ) {
 		for(dep in dependencies) {
 			switch(lastResult = dep.lastResult)
 			case(is Null) {
-				return Error("Internal error running ``taskPath()``: Dependency: ``dep.taskPath()`` was not evaluated.");
-			}
-			case(is Error) {
-				return lastResult;
+				return Failed(Error("Internal error running ``taskPath()``: Dependency: ``dep.taskPath()`` was not evaluated."));
 			}
 			case(is TaskResult) {
 				if(!lastResult.canContinue) {
@@ -123,9 +114,9 @@ shared abstract class Task (
 		return delegate(projectRootPath);
 	}
 	
-	shared Error|TaskResult checkAndExecute(AbsolutePath projectRootPath ) {
+	shared TaskResult checkAndExecute(AbsolutePath projectRootPath ) {
 		
-		variable<Error|TaskResult>(AbsolutePath) runner = execute;
+		variable<TaskResult>(AbsolutePath) runner = execute;
 		
 		if(exists c = cache) {
 			runner = executeWithCache(runner);

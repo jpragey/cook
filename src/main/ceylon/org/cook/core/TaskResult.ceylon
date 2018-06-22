@@ -1,5 +1,5 @@
 
-shared interface TaskResult /*of Success<TaskResult> | Failed */{
+shared interface TaskResult of Success<Object> | Failed {
 	shared formal Boolean canContinue;
 }
 

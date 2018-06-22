@@ -188,8 +188,8 @@ shared class Executor(
 				
 //				print(" -- task ``task.name ``parent: ``task.project?.name else "<null>"`` : taskpath = ``task.taskPath()``");
 				
-				if(is Error err = task.execute(projectRootPath)) {
-					return err;
+				if(is Failed err = task.execute(projectRootPath)) {
+					return err.cause;
 				}
 			}
 		}

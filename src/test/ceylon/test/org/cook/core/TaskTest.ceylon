@@ -10,7 +10,8 @@ import org.cook.core {
 	Input,
 	Output,
 	TaskPath,
-	ProjectPath
+	ProjectPath,
+	Failed
 }
 import org.cook.core.filesystem {
 	AbsolutePath
@@ -19,7 +20,7 @@ class TaskTest()
 {
 	class DoNothingTask(String name) extends Task(name, null) {
 		
-		shared actual Error|TaskResult execute(AbsolutePath projectRootPath) => Error("DoNothingTask should not be executed.");
+		shared actual TaskResult execute(AbsolutePath projectRootPath) => Failed(Error("DoNothingTask should not be executed."));
 		
 		shared actual {Input*} inputCacheElements => [];
 		

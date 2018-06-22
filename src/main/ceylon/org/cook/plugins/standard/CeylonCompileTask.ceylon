@@ -1,3 +1,6 @@
+import ceylon.collection {
+	ArrayList
+}
 import ceylon.file {
 	Path,
 	Nil,
@@ -13,7 +16,6 @@ import ceylon.process {
 import org.cook.core {
 	Task,
 	categories,
-	Error,
 	TaskResult,
 	projectPath,
 	Project,
@@ -25,9 +27,6 @@ import org.cook.core.filesystem {
 	RelativePath,
 	Visitor
 }
-import ceylon.collection {
-	ArrayList
-}
 
 shared class CeylonCompileTask(
 	String name = "compileCeylon",
@@ -38,14 +37,8 @@ shared class CeylonCompileTask(
 	"'--out' option, relative to project root"
 	RelativePath? outDirPath = null,
 	
-	//"Java sources directory, relative to project base"
-	//RelativePath srcDirRPath = RelativePath("src"),
-	//"Build target directory, relative to project base"
-	//RelativePath targetDirRPath = RelativePath("target"),
 	Project? parentProject = null,
 	Cache? cache_ = null
-	
-	
 ) 
 		extends Task(name, parentProject, cache_)
 {
@@ -53,43 +46,17 @@ shared class CeylonCompileTask(
 	
 	shared actual String string => taskPath().string;
 	
-	shared actual Error|TaskResult execute(AbsolutePath root) {
-		//print("  Project = ``project?.name else "<null>"``");
-		//print("  Project (thid) = ``this.project?.name else "<null>"``");
+	shared actual TaskResult execute(AbsolutePath root) {
 		
 		ProjectPath path = projectPath(project);
 		//print("  ProjectPath = ``path``");
 		
 		RelativePath basePath => path.basePath; // Relative to root
-		//print("  ProjectPath base = ``basePath``");
-		
-		//AbsolutePath projectBase = root.append(basePath);
-		
-		//Path targetDirPath = projectBase.append(targetDirRPath).path;
-		//Path targetClassDirPath = targetDirPath.childPath("classes");	// Kept after compilation
-		//if(is Nil d = targetClassDirPath.resource) {
-		//	d.createDirectory(true);
-		//}
 		
 		return doWithTemporaryDir("javacTmp_",  (AbsolutePath tmpdirPath) {
-			// -- Javac temp files
-			//Path classesFilePath = tmpdirPath.path.childPath("classes");
-			
-			//createClassesFile {
-			//	root = root;
-			//	classesFilePath = classesFilePath;
-			//	projectBasePath = projectBase.path;
-			//	srcDirectoryPath = srcDirRPath;
-			//};
 			
 			OverwriteFileOutput logFilePath(String fileName) => 
 					OverwriteFileOutput(tmpdirPath.path.childPath(fileName));
-
-			//"'--rep' option, relative to project root"
-			//RelativePath? repDirPath = null,
-			//
-			//"'--out' option, relative to project root"
-			//RelativePath? outDirPath = null,
 
 			ArrayList<String> args = ArrayList<String>{"compile"};
 			
@@ -107,9 +74,8 @@ shared class CeylonCompileTask(
 					root.append(p).string
 				};
 			}
-
 			
-			ShellTaskResult|Error result = ShellExecution{
+			TaskResult result = ShellExecution{
 				command = "ceylon";
 				projectBasePath = basePath;
 				args = args;
@@ -121,12 +87,12 @@ shared class CeylonCompileTask(
 			
 		});
 
-		//return Success("");
 	}
 	
 }
 
-T doWithTemporaryDir<T>(String? prefix,  T(AbsolutePath) work  ) 
+T doWithTemporaryDir<T>(String? prefix,  T(AbsolutePath) work  )
+	given T satisfies TaskResult
 {
 	void deleteDir(Directory dir) {
 		for(child in dir.children()) {

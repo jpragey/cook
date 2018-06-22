@@ -1,31 +1,28 @@
+import ceylon.collection {
+	ArrayList
+}
 import ceylon.file {
 	Path,
 	File,
 	Directory
-}
-import org.cook.core.filesystem {
-	RelativePath,
-	AbsolutePath
 }
 import ceylon.process {
 	OverwriteFileOutput,
 	Process,
 	createProcess
 }
-import ceylon.collection {
-	ArrayList
-}
+
 import org.cook.core {
-	Error,
-	TaskResult
+	TaskResult,
+	Success
+}
+import org.cook.core.filesystem {
+	RelativePath,
+	AbsolutePath
 }
 
 shared class ShellTaskResult(shared Integer exitValue, shared String[] outLog, shared String[] errLog) 
-satisfies TaskResult
 {
-	
-	shared actual Boolean canContinue => true;
-	
 }
 
 shared class ShellExecution(shared String command,
@@ -46,7 +43,7 @@ shared class ShellExecution(shared String command,
 		dir.delete();
 	}
 
-	shared Error|ShellTaskResult execute(AbsolutePath projectRootPath) {
+	shared TaskResult execute(AbsolutePath projectRootPath) {
 		//Path stdoutLogPath = logDirPath.childPath("stdout.log");
 		//Path stderrLogPath = logDirPath.childPath("stderr.log");
 		value processPath = projectRootPath.append(projectBasePath).path;
@@ -59,14 +56,12 @@ shared class ShellExecution(shared String command,
 		Process process = createProcess {
 			command = command;
 			arguments = args;
-			//path = projectBasePath.from(projectRootPath.path);
 			path = processPath;
 			output = stdoutFileOutput;
 			error  = stderrFileOutput;
 		};
 		
 		Integer exitCode = process.waitForExit();
-		//print("Exit code: ``exitCode``");
 		
 		String[] readAndDeleteLogFile(OverwriteFileOutput? fileOutput/* Path path*/) {
 			if(exists fileOutput) {
@@ -94,6 +89,6 @@ shared class ShellExecution(shared String command,
 		print("out: \n`` "\n".join(outLog) ``");
 		print("err: \n`` "\n".join(errLog) ``");
 		
-		return ShellTaskResult(exitCode, outLog, errLog);
+		return Success(ShellTaskResult(exitCode, outLog, errLog));
 	}
 }
