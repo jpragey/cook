@@ -66,7 +66,7 @@ shared TaskPath makeTaskPath(Project? project, String taskName) =>
 
 shared abstract class Task (
 	shared String name, 
-	shared variable Project? project = null
+	shared variable Project? project
 )
 	satisfies AbstractTask
 {

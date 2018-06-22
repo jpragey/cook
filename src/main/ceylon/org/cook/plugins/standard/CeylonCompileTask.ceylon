@@ -25,27 +25,43 @@ import org.cook.core.filesystem {
 	RelativePath,
 	Visitor
 }
+import ceylon.collection {
+	ArrayList
+}
 
 shared class CeylonCompileTask(
 	String name = "compileCeylon",
+
+	"'--rep' option, relative to project root"
+	RelativePath? repDirPath = null,
+	
+	"'--out' option, relative to project root"
+	RelativePath? outDirPath = null,
 	
 	//"Java sources directory, relative to project base"
 	//RelativePath srcDirRPath = RelativePath("src"),
 	//"Build target directory, relative to project base"
 	//RelativePath targetDirRPath = RelativePath("target"),
-	Project? project = null,
+	Project? parentProject = null,
 	shared Cache? cache = null
 	
 	
 ) 
-		extends Task(name)
+		extends Task(name, parentProject)
 {
 	category = categories.build;
 	
+	shared actual String string => taskPath().string;
 	
 	shared actual Error|TaskResult execute(AbsolutePath root) {
+		//print("  Project = ``project?.name else "<null>"``");
+		//print("  Project (thid) = ``this.project?.name else "<null>"``");
+		
 		ProjectPath path = projectPath(project);
-		RelativePath basePath = path.basePath; // Relative to root
+		//print("  ProjectPath = ``path``");
+		
+		RelativePath basePath => path.basePath; // Relative to root
+		//print("  ProjectPath base = ``basePath``");
 		
 		//AbsolutePath projectBase = root.append(basePath);
 		
@@ -68,15 +84,35 @@ shared class CeylonCompileTask(
 			
 			OverwriteFileOutput logFilePath(String fileName) => 
 					OverwriteFileOutput(tmpdirPath.path.childPath(fileName));
+
+			//"'--rep' option, relative to project root"
+			//RelativePath? repDirPath = null,
+			//
+			//"'--out' option, relative to project root"
+			//RelativePath? outDirPath = null,
+
+			ArrayList<String> args = ArrayList<String>{"compile"};
+			
+			// --rep
+			if(exists p = repDirPath) {
+				args.addAll{
+					"--rep",
+					root.append(p).string
+				};
+			}
+			// --out
+			if(exists p = outDirPath) {
+				args.addAll{
+					"--out",
+					root.append(p).string
+				};
+			}
+
 			
 			ShellTaskResult|Error result = ShellExecution{
 				command = "ceylon";
 				projectBasePath = basePath;
-				args = {
-					"compile"
-					//"-d", "``targetClassDirPath``",
-					//"@``classesFilePath``"
-				};
+				args = args;
 				stdoutFileOutput = logFilePath("stdout.log");
 				stderrFileOutput = logFilePath("stderr.log");
 			}.execute(root);

@@ -22,12 +22,12 @@ class ExecutorTest()
 		
 		Project project = Project("root");
 		
-		project.addTask(object extends Task("task0") {
+		project.addTask(object extends Task("task0", null) {
 			category = categories.build;
 			description = "Description of Task 0";
 			shared actual Error|TaskResult execute(AbsolutePath projectRootPath) => Success("");
 		});
-		project.addTask(object extends Task("task1") {
+		project.addTask(object extends Task("task1", null) {
 			category = categories.build;
 			description = "Description of Task 1";
 			shared actual Error|TaskResult execute(AbsolutePath projectRootPath) => Success("");

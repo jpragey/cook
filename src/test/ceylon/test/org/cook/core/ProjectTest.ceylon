@@ -5,10 +5,17 @@ import ceylon.test {
 import org.cook.core {
 	Project,
 	ProjectVisitor,
-	ProjectPath
+	ProjectPath,
+	Task,
+	Error,
+	TaskResult,
+	Success
 }
 import ceylon.collection {
 	ArrayList
+}
+import org.cook.core.filesystem {
+	AbsolutePath
 }
 class ProjectTest() 
 {
@@ -56,6 +63,24 @@ class ProjectTest()
 		assertEquals(root.projectPath, ProjectPath(["root"], []));
 		assertEquals(child0.projectPath, ProjectPath(["root", "child0"], ["child0Dir"]));
 		assertEquals(child1.projectPath, ProjectPath(["root", "child1"], ["child1Dir"]));
+	}
+
+	test
+	shared void testAddedTaskParent() {
+		Project root = Project("root", "rootDir");
+		Project child0 = Project("child0", "child0Dir");
+		Project child1 = Project("child1", "child1Dir");
+		root.addChildrenProjects(child0);
+		child0.addChildrenProjects(child1);
+		
+		Task task = object extends Task("task", null) {
+			shared actual Error|TaskResult execute(AbsolutePath projectRootPath) => Success("");
+		};
+		child1.addAllTask(task);
+		
+		assertEquals(task.project, child1);
+		assertEquals(task.taskPath().elements,    ["root", "child0", "child1", "task"]);
+		assertEquals(task.taskPath().dirElements, ["child0Dir", "child1Dir", "task"]);
 	}
 	
 	test

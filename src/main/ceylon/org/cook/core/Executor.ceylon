@@ -96,6 +96,11 @@ shared class Executor(
 	
 	shared Integer execute(Project project) {
 		
+		if(exists err = project.checkSanity()) {
+			err.printIndented(process.writeErrorLine);
+			return errorCode;
+		}
+		
 		Cli cli;
 		
 		switch(c = parseCli {
@@ -180,6 +185,9 @@ shared class Executor(
 		}
 		case(is Task[]) {
 			for(task in sortedTasks) {
+				
+//				print(" -- task ``task.name ``parent: ``task.project?.name else "<null>"`` : taskpath = ``task.taskPath()``");
+				
 				if(is Error err = task.execute(projectRootPath)) {
 					return err;
 				}

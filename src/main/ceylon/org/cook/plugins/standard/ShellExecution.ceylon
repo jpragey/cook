@@ -47,12 +47,18 @@ shared class ShellExecution(shared String command,
 	shared Error|ShellTaskResult execute(AbsolutePath projectRootPath) {
 		//Path stdoutLogPath = logDirPath.childPath("stdout.log");
 		//Path stderrLogPath = logDirPath.childPath("stderr.log");
+		value processPath = projectRootPath.append(projectBasePath).path;
+		
+		//// TODO: log
+		//print("Executing ``command``  ``args`` ");
+		//print("  Process path: ``processPath`` ");
+		//print("  Process base path: ``projectBasePath`` ");
 		
 		Process process = createProcess {
 			command = command;
 			arguments = args;
 			//path = projectBasePath.from(projectRootPath.path);
-			path = projectRootPath.append(projectBasePath).path;
+			path = processPath;
 			output = stdoutFileOutput;
 			error  = stderrFileOutput;
 		};

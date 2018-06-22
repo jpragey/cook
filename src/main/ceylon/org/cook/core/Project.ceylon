@@ -18,11 +18,48 @@ shared class Project(shared String name, shared String dirName = name) {
 			then p.projectPath.child(name, dirName)
 			else ProjectPath([name]);
 	
+	shared actual String string => projectPath.string;
+	
 	MutableList<Project> internalChildren = ArrayList<Project>();
 	shared List<Project> children => internalChildren;
 	
 	MutableList<Task> internalTasks = ArrayList<Task>();
 	shared default {Task *} tasks => internalTasks;
+	
+	shared Error? checkSanity() {
+		ArrayList<Error> errors = ArrayList<Error>();
+		
+		// Check children
+		for(Project child in children) {
+			if(exists parent = child.parent) {
+				if(parent != this) {
+					errors.add(Error("Internal error: project ``child.projectPath`` has a parent (project) attribute referring to ``parent.projectPath``; it should refer to ``this.projectPath`` ."));
+				}
+			} else {
+				errors.add(Error("Internal error: project ``child.projectPath`` has a null parent (project) attribute; it should refer to ``this.projectPath`` ."));
+			}
+		}
+		
+		// Recurse on children
+		errors.addAll(children*.checkSanity().coalesced);
+		
+		// Check tasks
+		for(task in tasks) {
+			if(exists parent = task.project) {
+				if(parent != this) {
+					errors.add(Error("Internal error: task ``task.taskPath()`` has a project attribute referring to ``parent.projectPath``; it should refer to ``this.projectPath`` ."));
+				}
+			} else {
+				errors.add(Error("Internal error: task ``task.taskPath()`` has a null parent (project) attribute; it should refer to ``this.projectPath`` ."));
+			}
+		}
+
+		if(nonempty e = errors.sequence()) {
+			return Error("Internal error: project/task tree not coherent under ``projectPath``.", e);
+		}
+		
+		return null;
+	}
 	
 	shared void updateParent(Project? newParent) {
 		this.parent = newParent;

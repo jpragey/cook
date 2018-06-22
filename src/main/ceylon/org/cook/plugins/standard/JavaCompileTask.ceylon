@@ -32,7 +32,7 @@ shared class JavaCompileTask(
 	
 	
 ) 
-		extends Task(name)
+		extends Task(name, project)
 {
 	category = categories.build;
 	

@@ -52,7 +52,8 @@ class ProjectWithLibsBuilder() {
 			print("Creating application in ``currentDir.path``");
 			buildLib(lib0Name, projectDir);			
 			buildLib(lib1Name, projectDir);
-			buildApp([lib0Name, lib1Name], projectDir);			
+			buildApp([lib0Name, lib1Name], projectDir);
+			buildBuilder(projectDir);			
 		}
 		return exitCodes.ok;
 	}
@@ -169,6 +170,99 @@ class ProjectWithLibsBuilder() {
 			e.printStackTrace();
 		}
 
+		print("Created application");
+		
+	}
+	
+	
+	void buildBuilder(TestDirEntry projectDir) 
+	{
+		String libName = "build";
+		
+		String moduleFileContent =
+				"
+				 native(\"jvm\")
+				 module org.``libName`` \"1.0.0\" {
+				 
+                      shared import org.cook.core \"0.0.1\";
+				      import org.cook.plugins.standard \"0.0.1\";
+              }
+              ";
+		String packageFileContent =
+				"shared package org.``libName``;
+				 
+				 ";
+		String runFileContent =
+				"""
+				   import org.cook.core {
+				   Project,
+				   Executor
+				   }
+				   import org.cook.plugins.standard {
+				   CeylonCompileTask
+				   }
+				   import org.cook.core.filesystem {
+				   RelativePath
+				   }
+				   
+				   suppressWarnings("expressionTypeNothing") // because of process.exit()
+				   shared void run() 
+				   {
+				       Project root = Project("root");
+				       Project lib0 = Project("lib0");
+				       Project lib1 = Project("lib1");
+				       Project app = Project("app");
+				       root.addChildrenProjects(lib0, lib1, app);
+
+ 				  	   // Store all modules in <root>/modules/
+				       value repoPath = RelativePath("modules");
+				       value compileTask => CeylonCompileTask("compile", repoPath, repoPath);
+				                                                                                                                                                                                                          
+	                   lib0.addTask(compileTask);
+	                   lib1.addTask(compileTask);
+                       app.addTask(compileTask);
+                  
+	                   Integer exitCode = Executor().execute(root);
+				       process.exit(exitCode);
+                   }
+                   
+				   """;
+		String ceylonConfigContent = 
+				"[defaults]
+				 encoding=UTF-8
+				 
+				 [compiler]
+				 source=src/main/ceylon
+				 source=src/test/ceylon
+				 resource=resource
+				 ";
+		
+		try (libDir = TestDirEntry(projectDir, libName),
+			srcDir = TestDirEntry(libDir, "src"),
+			
+			ceylonDir = TestDirEntry(libDir, ".ceylon"),
+			ceylonConfigFile = TestFileEntry(ceylonDir,  "config", ceylonConfigContent),
+			
+			srcMainDir = TestDirEntry(srcDir, "main"),
+			srcMainCeylonDir = TestDirEntry(srcMainDir, "ceylon"),
+			srcMainCeylonOrgDir = TestDirEntry(srcMainCeylonDir, "org"),
+			srcMainCeylonOrgLibDir = TestDirEntry(srcMainCeylonOrgDir, libName),
+			
+			srcMainModuleFile = TestFileEntry(srcMainCeylonOrgLibDir,  "module.ceylon", moduleFileContent),
+			srcMainPackageFile = TestFileEntry(srcMainCeylonOrgLibDir, "package.ceylon", packageFileContent),
+			srcMainRunFile = TestFileEntry(srcMainCeylonOrgLibDir, "run.ceylon", runFileContent),
+			
+			srcTestDir = TestDirEntry(srcDir, "test"),
+			srcTestCeylonDir = TestDirEntry(srcTestDir, "ceylon")
+			
+		) {
+			print("Created build project ``libName``");
+		}
+		
+		catch(Exception e) {
+			e.printStackTrace();
+		}
+		
 		print("Created application");
 		
 	}
