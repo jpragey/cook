@@ -45,17 +45,6 @@ shared object categories {
 }
 
 
-
-shared interface AbstractTask {
-	
-	shared default Error|TaskResult checkAndExecute(AbsolutePath projectRootPath) {
-		return execute(projectRootPath);
-	}
-	
-	shared formal Error|TaskResult execute(AbsolutePath projectRootPath);
-	
-}
-
 shared ProjectPath projectPath(Project? project) => 
 		project?.projectPath else ProjectPath.undefined 
 		;
@@ -66,9 +55,9 @@ shared TaskPath makeTaskPath(Project? project, String taskName) =>
 
 shared abstract class Task (
 	shared String name, 
-	shared variable Project? project
+	shared variable Project? project,
+	shared variable Cache? cache = null
 )
-	satisfies AbstractTask
 {
 	shared default {Input *} inputCacheElements = [];
 	shared default {Output *} outputCacheElements = [];
@@ -81,6 +70,8 @@ shared abstract class Task (
 	shared MutableList<Task> dependencies = ArrayList<Task>();
 	shared MutableList<CacheElement> cacheElementDependencies = ArrayList<CacheElement>();
 	
+	"null : not executed yet"
+	shared variable <Error|TaskResult|Null> lastResult = null;
 	
 	shared void updateParent(Project ? newParent) {
 		this.project = newParent;
@@ -98,6 +89,8 @@ shared abstract class Task (
 			cacheElementDependencies.add(cacheElement);
 		}
 	}
+
+	shared formal Error|TaskResult execute(AbsolutePath projectRootPath);
 	
 	/***
 	shared default TaskExecutor<Result> executor => SimpleTaskExecutor<Result>(execute);
@@ -106,5 +99,42 @@ shared abstract class Task (
 		return executor.execute(projectRootPath);
 	}
 	 */
+	Error|TaskResult executeWithCache(<Error|TaskResult>(AbsolutePath) delegate) (AbsolutePath projectRootPath ) {
+		// TODO: implement it
+		return delegate(projectRootPath);
+	}
+	
+	Error|TaskResult checkDependenciesAndRun(<Error|TaskResult>(AbsolutePath) delegate) (AbsolutePath projectRootPath ) {
+		for(dep in dependencies) {
+			switch(lastResult = dep.lastResult)
+			case(is Null) {
+				return Error("Internal error running ``taskPath()``: Dependency: ``dep.taskPath()`` was not evaluated.");
+			}
+			case(is Error) {
+				return lastResult;
+			}
+			case(is TaskResult) {
+				if(!lastResult.canContinue) {
+					return lastResult;	// TODO: ???
+				}
+			}
+		}
+
+		return delegate(projectRootPath);
+	}
+	
+	shared Error|TaskResult checkAndExecute(AbsolutePath projectRootPath ) {
+		
+		variable<Error|TaskResult>(AbsolutePath) runner = execute;
+		
+		if(exists c = cache) {
+			runner = executeWithCache(runner);
+		}
+		runner = checkDependenciesAndRun(runner);
+		
+		
+		value res = this.lastResult  = runner(projectRootPath);
+		return res;
+	}
 	
 }

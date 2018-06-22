@@ -28,11 +28,11 @@ shared class JavaCompileTask(
 	"Build target directory, relative to project base"
 	RelativePath targetDirRPath = RelativePath("target"),
 	Project? project = null,
-	shared Cache? cache = null
+	shared Cache? cache_ = null
 	
 	
 ) 
-		extends Task(name, project)
+		extends Task(name, project, cache_)
 {
 	category = categories.build;
 	

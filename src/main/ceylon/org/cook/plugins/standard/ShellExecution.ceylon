@@ -24,6 +24,8 @@ shared class ShellTaskResult(shared Integer exitValue, shared String[] outLog, s
 satisfies TaskResult
 {
 	
+	shared actual Boolean canContinue => true;
+	
 }
 
 shared class ShellExecution(shared String command,

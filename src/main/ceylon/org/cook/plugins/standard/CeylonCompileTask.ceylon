@@ -43,11 +43,11 @@ shared class CeylonCompileTask(
 	//"Build target directory, relative to project base"
 	//RelativePath targetDirRPath = RelativePath("target"),
 	Project? parentProject = null,
-	shared Cache? cache = null
+	Cache? cache_ = null
 	
 	
 ) 
-		extends Task(name, parentProject)
+		extends Task(name, parentProject, cache_)
 {
 	category = categories.build;
 	
