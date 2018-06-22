@@ -1,0 +1,57 @@
+= Cook build system (experimental)
+
+Eperimental build system based on the https://ceylon-lang.org[Ceylon] programming language.
+
+The idea behind cook is that a project build should be delegated to an application-specific
+program. With more traditional systems (maven/ant), when project grow, you end up with huge XML files - a pain to write and maintain.
+With gradle, the situation is a bit better, as you can write Groovy code. But anyway it's hard.
+
+Cook approach consists in describing a build in a (small) ceylon project. Cook provides
+modules for managing (hierarchical) projects and tasks, for creating usual tasks, and for
+running them. So builds can keep up with growing projects using the full power of a
+*real* programming language, and benefit from its cool stuffs like static typing,
+automated testing, module isolation, syntax coloring, (working) code completion in IDEs, and so on.
+
+== Status
+Version 0.0.1
+
+In infancy. Don't expect anything but bugs and missing features yet.
+
+== Installation
+
+Ensure you have java 8, git and https://www.ceylon-lang.org/download[ceylon 1.3.3] installed.
+
+Then, you have to recompile cook from its sources on GitHub:
+
+[source, bash]
+---------
+git clone https://github.com/jpragey/cook
+cd cook
+ceylon compile --out +USER
+---------
+
+It installs cook modules in <HOME>/.ceylon/repo, so they can be accessed from anywhere.
+
+
+== Jump start
+
+Cook features an org.cook.create module that helps creating new projects.
+Currently only one is defined, made of 2 library modules, 1 application module and a build module.
+its name ('projectName') is hardcoded yet.
+
+[source, bash]
+---------
+cd /tmp/
+ceylon run -- org.cook.create
+cd projectName/
+
+# compile the build module
+ceylon --cwd=build compile
+
+# run the build module, to compile the application
+ceylon run --rep build/modules -- org.build compile
+
+# Now run the application
+ceylon run org.app
+---------
+
