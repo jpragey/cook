@@ -1,5 +1,6 @@
 import ceylon.test {
-	test
+	test,
+	assertEquals
 }
 
 import org.cook.core {
@@ -49,6 +50,33 @@ class ExecutorTest()
 		assertContains("Description of Task 1");
 		
 		
+	}
+	
+	test
+	shared void runAfter() {
+		Project project = Project("");
+		
+		class DummyTask (String name, Project project) extends Task(name, project) {
+			shared actual TaskResult execute(AbsolutePath projectRootPath) => Success("");
+		}
+		
+		value mainTask= DummyTask("main", project);
+		value depTask= DummyTask("dep", project);
+		value auxTask= DummyTask("aux", project);
+		
+		mainTask.addDependency(depTask, {});
+		mainTask.runAfter(auxTask);
+		auxTask.runAfter(depTask);
+		
+		// Whatever the initial order of the 3 tasks, they're sorted in the same way
+		for(initTasks in [mainTask, auxTask, depTask].permutations ) {
+			assertEquals(Executor().sortTaskGraph(initTasks), [depTask, auxTask, mainTask]);
+		}
+		
+		// If the auxTask is not in input, it's not in output (runAfter != dependency)
+		for(initTasks in [mainTask, depTask].permutations ) {
+			assertEquals(Executor().sortTaskGraph(initTasks), [depTask, mainTask]);
+		}
 	}
 	
 }

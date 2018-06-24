@@ -1,6 +1,8 @@
 import ceylon.collection {
 	ArrayList,
-	HashMap
+	HashMap,
+	IdentitySet,
+	IdentityMap
 }
 import ceylon.file {
 	current
@@ -162,39 +164,66 @@ shared class Executor(
 			return successCode;
 		}
 		
-		switch(res = runTaskGraph(matchingTasks))
-		case(is Null) {
-			return successCode;
-		}
-		case(is Error) {
-			res.printIndented(console.error);
+		value sortedTasks = sortTaskGraph(matchingTasks);
+		if(is Error sortedTasks) {
+			sortedTasks.printIndented(console.error);
 			return errorCode;
 		}
+		
+		for (task in sortedTasks) {
+			// print(" -- task ``task.name ``parent: ``task.project?.name else "<null>"`` : taskpath = ``task.taskPath()``");
+			if(is Failed err = task.execute(projectRootPath)) {
+				err.cause.printIndented(console.error);
+				return errorCode;
+			}
+		}
+		
+		return successCode;
 	}
 	
-	Error? runTaskGraph (List<Task>  tasks) {
+	
+	
+	restricted(`module test.org.cook.core`)
+	shared Error|Task[] sortTaskGraph (List<Task>  tasks) {
 		
-		IdentifiableGraph<Task> graph = IdentifiableGraph<Task>(tasks, (task) => task.dependencies.sequence()); // TODO:optimize task.dependencies.sequence
+		IdentifiableGraph<Task> initGraph = IdentifiableGraph<Task>(tasks, (task) => task.dependencies.sequence()); // TODO:optimize task.dependencies.sequence
 		
-		switch(sortedTasks = graph.sort {
+		value initSortedTasks = initGraph.sort {	// TODO: graph needs only to be completed, not to be sorted
 			showCycle = true;
 			keepNodesOrder = true;
-		})
+		};
+		
+		IdentitySet<Task> initTasksToRun;
+		
+		switch(initSortedTasks)
+		case(is Cycle<Task>) {
+			return Error("Task dependencies cycle found: ``initSortedTasks.nodes*.name``");	// TODO: better explain cycle
+		}
+		case(is Task[]) {
+			initTasksToRun = IdentitySet<Task>{*initSortedTasks};
+		}
+		
+		// -- Append runAfter tasks (if they have to be run) as dependencies and re-sort
+		IdentityMap<Task, Task[]> depMap = IdentityMap<Task, Task[]> {
+			*initTasksToRun.map( (Task task) => (task ->
+				concatenate(
+					task.dependencies, 
+					task.runAfterTasks.filter(initTasksToRun.contains))) )
+		};
+		
+		IdentifiableGraph<Task> graph = IdentifiableGraph<Task>(tasks, (task) => depMap.get(task) else [] /*TODO: what [] ? assert ?*/);
+		value sortedTasks = graph.sort {
+			showCycle = true;
+			keepNodesOrder = true;
+		};
+
+		switch(sortedTasks)
 		case(is Cycle<Task>) {
 			return Error("Task dependencies cycle found: ``sortedTasks.nodes*.name``");	// TODO: better explain cycle
 		}
 		case(is Task[]) {
-			for(task in sortedTasks) {
-				
-//				print(" -- task ``task.name ``parent: ``task.project?.name else "<null>"`` : taskpath = ``task.taskPath()``");
-				
-				if(is Failed err = task.execute(projectRootPath)) {
-					return err.cause;
-				}
-			}
+			return sortedTasks;
 		}
-		
-		return null;
 	}
 	
 }

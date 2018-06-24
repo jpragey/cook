@@ -68,6 +68,7 @@ shared abstract class Task (
 	shared TaskPath taskPath() => makeTaskPath(project, name);
 	
 	shared MutableList<Task> dependencies = ArrayList<Task>();
+	shared MutableList<Task> runAfterTasks = ArrayList<Task>();
 	shared MutableList<CacheElement> cacheElementDependencies = ArrayList<CacheElement>();
 	
 	"null : not executed yet"
@@ -88,6 +89,9 @@ shared abstract class Task (
 			CacheElement cacheElement = attr.bind(task).get();		
 			cacheElementDependencies.add(cacheElement);
 		}
+	}
+	shared default void runAfter(Task task) {
+		runAfterTasks.add(task);
 	}
 
 	shared formal TaskResult execute(AbsolutePath projectRootPath);

@@ -41,4 +41,13 @@ class TaskTest()
 		root.addChildrenProjects(child);
 		assertEquals(task.taskPath(), TaskPath(ProjectPath(["root", "child"], ["child"]), "aTask"));
 	}
+	
+	test
+	shared void dependencyTest() {
+		Task task0 = DoNothingTask("task0");
+		Task task1 = DoNothingTask("task1");
+		
+		task0.addDependency(task1, {});
+		
+	}
 }
