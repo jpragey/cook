@@ -47,7 +47,9 @@ shared class TestDirEntry(Directory|TestDirEntry parent, shared String name/*, {
 	}
 	
 	shared actual void destroy(Throwable? error) {
-		deepDelete(dir);
+		if(is Directory d = dir.path.resource) {
+			deepDelete(dir);
+		}
 	}
 }
 
@@ -70,5 +72,9 @@ shared class TestFileEntry(Directory|TestDirEntry parent, String name, String|<B
 	}
 	
 	
-	shared actual void destroy(Throwable? error) {file.delete();}
+	shared actual void destroy(Throwable? error) {
+		if(is File f = file.path.resource) {
+			f.delete();
+		}
+	}
 }
