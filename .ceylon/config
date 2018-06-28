@@ -4,8 +4,8 @@ encoding=UTF-8
 
 [compiler]
 source=src/main/ceylon
-resource=resource
 source=examples-cli
 source=src/test/ceylon
+resource=src/main/resources
 
 
