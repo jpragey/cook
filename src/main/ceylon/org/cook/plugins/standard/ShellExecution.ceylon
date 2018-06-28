@@ -14,7 +14,8 @@ import ceylon.process {
 
 import org.cook.core {
 	TaskResult,
-	Success
+	Success,
+	Failed, Error
 }
 import org.cook.core.filesystem {
 	RelativePath,
@@ -89,6 +90,14 @@ shared class ShellExecution(shared String command,
 		print("out: \n`` "\n".join(outLog) ``");
 		print("err: \n`` "\n".join(errLog) ``");
 		
-		return Success(ShellTaskResult(exitCode, outLog, errLog));
+		if(exitCode == 0) {
+			return Success(ShellTaskResult(exitCode, outLog, errLog));
+		} else {
+			Error err = Error("Shell command ``command`` with args ``args`` returned error code ``exitCode`` : 
+			                   out: `` "\n".join(outLog) ``
+			                   err: `` "\n".join(errLog) ``
+			                   ");
+			return Failed(err);
+		}
 	}
 }

@@ -1,5 +1,6 @@
 import org.cook.core {
-	Error
+	Error,
+	Failed
 }
 import ceylon.file {
 	Directory,
@@ -7,13 +8,24 @@ import ceylon.file {
 	Path,
 	File
 }
+import org.cook.core.filesystem {
+	AbsolutePath
+}
 
-shared T assertNotError<T>(T|Error t) 
+shared T assertNotError<T>(T|Failed|Error t) 
 {
+	void printError(Error error) {
+		error.printIndented(print);
+	}
+	
 	switch(t)
 	case(is Error) {
-		t.printIndented(print);
+		printError(t);
 		throw AssertionError(t.message);
+	}
+	case(is Failed) {
+		printError(t.cause);
+		throw AssertionError(t.cause.message);
 	}
 	else {
 		return t;
@@ -28,6 +40,8 @@ shared interface TestEntry satisfies Destroyable {
 shared class TestDirEntry(Directory|TestDirEntry parent, shared String name/*, {TestEntry(TestEntry) *} children*/) satisfies TestEntry {
 	shared /*actual*/ Path parentPath = if(is Directory parent) then parent.path else parent.path;
 	shared actual Path path = parentPath.childPath(name);
+
+	shared AbsolutePath absolutePath(String* children) =>  AbsolutePath(path).add(*children);
 	
 	assert(is Nil res = parentPath.childPath(name).resource);
 	Directory dir = res.createDirectory(true);

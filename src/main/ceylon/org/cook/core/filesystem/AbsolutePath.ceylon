@@ -12,7 +12,18 @@ shared class AbsolutePath(shared Path path) {
 		other.elements.fold(path)( (path, String|Current|Parent child) => path.childPath(child.string) )	
 	);
 	
+	
 	shared Resource resource => path.resource; 
+
+	shared AbsolutePath add(String* others) {
+		variable AbsolutePath result = this;
+		for(p in others) {
+			result = result.append(RelativePath.parse(p));
+		}
+		return result;
+	}
+	//other.fold(this)( (path, String child) => path.append(RelativePath() )	
+	//);
 
 	shared void visit(RelativePath relativePath, Visitor visitor) {
 		
