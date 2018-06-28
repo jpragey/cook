@@ -37,13 +37,12 @@ It installs cook modules in <HOME>/.ceylon/repo, so they can be accessed from an
 
 Cook features an org.cook.create module that helps creating new projects.
 Currently only one is defined, made of 2 library modules, 1 application module and a build module.
-its name ('projectName') is hardcoded yet.
 
 [source, bash]
 ---------
 cd /tmp/
 ceylon run -- org.cook.create
-cd projectName/
+cd org.demo.helloWorld
 
 # compile the build module
 ceylon --cwd=build compile
