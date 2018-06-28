@@ -27,6 +27,10 @@ import org.cook.core.filesystem {
 	RelativePath,
 	Visitor
 }
+import org.apache.commons.lang3 {
+
+	SystemUtils
+}
 
 shared class CeylonCompileTask(
 	String name = "compileCeylon",
@@ -75,8 +79,8 @@ shared class CeylonCompileTask(
 				};
 			}
 			
-			TaskResult result = ShellExecution{
-				command = "ceylon";
+			TaskResult result = ShellExecution {
+				command = if(SystemUtils.isOsWindows) then "ceylon.bat" else "ceylon";
 				projectBasePath = basePath;
 				args = args;
 				stdoutFileOutput = logFilePath("stdout.log");
