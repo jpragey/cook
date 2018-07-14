@@ -15,19 +15,33 @@ import org.cook.core {
 	Project,
 	Cache,
 	TaskResult,
-	projectPath
+	projectPath,
+	TaskPath,
+	Input,
+	CacheId,
+	Error,
+	Output
 }
 import org.cook.core.filesystem {
 	AbsolutePath,
 	RelativePath
 }
+import ceylon.json {
+	JsonObject,
+	JsonArray
+}
 
 
-
+" Jar creation task.
+ 
+ 
+ 
+ 
+ "
 
 shared class JarTask(
 	"Relative to root"
-	RelativePath jarFile,
+	RelativePath jarRPath,
 	String name_="jar",
 	//JarOperation operation = JarOperation.create,
 	Project? project_ = null, 
@@ -35,30 +49,65 @@ shared class JarTask(
 )
 extends Task(name_, project_, cache_) 
 {
-	class PathEntry(shared RelativePath? pathBase, shared {RelativePath *} paths) {}
+	RelativePath basePath => projectPath(project_).basePath;
+
+	class PathEntry(shared RelativePath pathBase, shared RelativePath path) 
+	{
+		shared JsonObject json(AbsolutePath root) => JsonObject{
+			"pathBase" -> JsonArray(pathBase.elementStrings),
+			"files" -> FileTree(root.append(pathBase)).jsonContent(path)
+		};
+	}
 	
 	MutableList<PathEntry> pathEntries = ArrayList<PathEntry>();
 
-	shared JarTask addPath(RelativePath? pathBase, {RelativePath *} paths) {
-		pathEntries.add(PathEntry(pathBase, paths));
+	"Add a path relative to another path, like in 'jar -C pathBase path'.
+	 For example: addPath(RelativePath(\"target\", \"classes\"), RelativePath.current) includes all files in target/classes.
+	 "
+	shared JarTask addPath("from root" RelativePath pathBase, RelativePath path) {
+		pathEntries.add(PathEntry(pathBase, path));
 		return this;
 	}
 	
-	shared String[] options(AbsolutePath root) {
+	String[] options(AbsolutePath root) {
 		value result = ArrayList<String>();
 		
 		for(entry in pathEntries) {
-			if(exists pathBase = entry.pathBase) {
+			//if(exists pathBase = entry.pathBase) {
 				result.add("-C");
-				result.add(root.append(pathBase).path.string);	// TODO: string?
-			}
-			for(path in entry.paths) {
-				result.add(path.string);	// TODO: string?
-			}
-			
+				result.add(root.append(entry.pathBase).path.string);	// TODO: string?
+			//}
+			result.add(entry.path.string);	// TODO: string?
 		}
 		return result.sequence();
 	}
+
+
+	shared actual Input input => object satisfies Input {
+		shared actual CacheId id() => CacheId(taskPath().elements.append(["in"]));
+		
+		shared actual JsonObject/*|Error*/ toJson(AbsolutePath root) => JsonObject{
+			"options" -> JsonArray(options(root)),
+			"files" -> JsonArray(pathEntries*.json(root))
+		};
+		
+		shared actual void updateTaskPath(TaskPath newTaskPath) {}
+	};
+	
+	shared actual Output output => object satisfies Output {
+		shared actual CacheId id() => CacheId(taskPath().elements.append(["out"]));
+		
+		shared actual JsonObject|Error toJson(AbsolutePath root) => JsonObject{
+			"target" -> FileTree(root).jsonContent(basePath + jarRPath)
+		};
+		
+		shared actual Error|Boolean updateFrom(JsonObject content, AbsolutePath root) {
+			return FileTree(root).updateFrom(content, taskPath);
+		}
+		
+		shared actual void updateTaskPath(TaskPath newTaskPath) {}
+	};
+
 
 	shared actual TaskResult execute(AbsolutePath root) {
 
@@ -80,7 +129,7 @@ extends Task(name_, project_, cache_)
 				command = "jar";
 				projectBasePath = projectPath(project).basePath;
 				args = {
-					"cf", "``root.append(jarFile).path``",
+					"cf", "``root.append(jarRPath).path``",
 					"@``optionsFilePath.path``"
 				};
 				stdoutFileOutput = logFilePath("stdout.log");
