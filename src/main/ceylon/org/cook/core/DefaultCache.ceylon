@@ -21,6 +21,9 @@ import ceylon.json {
 	JsonArray,
 	parse
 }
+import org.cook.core.filesystem {
+	AbsolutePath
+}
 
 shared class DefaultCache satisfies Cache 
 {
@@ -32,6 +35,11 @@ shared class DefaultCache satisfies Cache
 		this.content = HashMap<CacheId, JsonObject>{*initialContent};
 	}
 
+	shared JsonObject? get(CacheId cacheId) => content.get(cacheId);
+	
+	shared Collection<CacheId> ids => content.keys;
+	
+	
 	// TODO: be more strict with JSON syntax
 	shared Error? loadString(String cacheJson) {
 		if(is JsonArray array =  parse(cacheJson)) {	// throws Exception if invalid JSON
@@ -114,10 +122,10 @@ shared class DefaultCache satisfies Cache
 	}
 	
 	
-	shared actual Boolean match(CacheElement[] currentCacheElements) {
-		for(current in currentCacheElements) {
+	shared actual Boolean match(CacheElement current/*CacheElements*/, AbsolutePath root) {
+		//for(current in currentCacheElements) {
 			
-			switch(currentJson = current.toJson())
+			switch(currentJson = current.toJson(root))
 			case(is Error) {
 				return false;	// TODO: dubious
 			}
@@ -133,33 +141,34 @@ shared class DefaultCache satisfies Cache
 					return false;
 				}
 			} 
-		}
+		//}
 		return true;
 	}
 	
-	shared actual Error? updateFrom(CacheElement[] currentCacheElements) {
-		for(current in currentCacheElements) {
-			switch(val = current.toJson())
+	shared actual Error? updateFrom(CacheElement current, AbsolutePath root) {
+		//for(current in currentCacheElements) {
+			switch(val = current.toJson(root))
 			case(is Error) {return val;}
 			case(is JsonObject) {
 				CacheId id = current.id();
 				content.put(id, val);
 			} 
-		}
+		//}
 		
 		return null;
 	}
 	
-	shared actual Error? updateTo(Output[] currentCacheElements) {
-		for(current in currentCacheElements) {
-			CacheId id = current.id();
+	shared actual Error|Boolean updateTo(Output output, AbsolutePath root) {
+		//for(current in currentCacheElements) {
+			CacheId id = output.id();
 			if(exists JsonObject jsonObject = content.get(id)) {
-				current.updateCache(jsonObject);
+				Boolean|Error updated = output.updateFrom(jsonObject, root);
+				return updated;
 			} else {
-				return Error("");
+				return Error(""); // TODO
 			}
-		}
-		return null;
+		//}
+		//return null;
 	}
 	
 }

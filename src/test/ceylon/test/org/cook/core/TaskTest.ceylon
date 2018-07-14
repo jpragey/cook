@@ -2,13 +2,12 @@ import ceylon.test {
 	test,
 	assertEquals
 }
+
 import org.cook.core {
 	Project,
 	Task,
 	TaskResult,
 	Error,
-	Input,
-	Output,
 	TaskPath,
 	ProjectPath,
 	Failed
@@ -22,9 +21,6 @@ class TaskTest()
 		
 		shared actual TaskResult execute(AbsolutePath projectRootPath) => Failed(Error("DoNothingTask should not be executed."));
 		
-		shared actual {Input*} inputCacheElements => [];
-		
-		shared actual {Output*} outputCacheElements => [];
 	}
 	
 	test

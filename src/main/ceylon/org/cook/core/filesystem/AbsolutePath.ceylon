@@ -2,11 +2,20 @@ import ceylon.file {
 	Path,
 	Resource,
 	File,
-	Directory
+	Directory,
+	ExistingResource,
+	Link,
+	currentDir = current
 }
 
 serializable
-shared class AbsolutePath(shared Path path) {
+shared class AbsolutePath {
+	shared Path path;
+	
+	shared new (Path path) {
+		this.path = path;
+	}
+	shared new current extends AbsolutePath(currentDir) {}
 
 	shared AbsolutePath append(RelativePath other) => AbsolutePath(
 		other.elements.fold(path)( (path, String|Current|Parent child) => path.childPath(child.string) )	
@@ -31,7 +40,21 @@ shared class AbsolutePath(shared Path path) {
 			
 			visitor.beforeDirectory(relativePath, dir); 
 			
-			for(child in dir.children()) {
+			Comparison comparing (ExistingResource x, ExistingResource y) {
+				String xName = switch(x)
+				case(is Directory) x.name
+				case(is File) x.name
+				case(is Link) "";	// TODO
+				
+				String yName = switch(y)
+				case(is Directory) y.name
+				case(is File) y.name
+				case(is Link) "";	// TODO
+				
+				return xName <=> yName;
+			}
+			
+			for(child in dir.children().sequence().sort(comparing)) {
 				switch(child)
 				case(is File) {
 					visitor.file(relativePath.append(child.name), child); 

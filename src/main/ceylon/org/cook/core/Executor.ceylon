@@ -172,7 +172,7 @@ shared class Executor(
 		
 		for (task in sortedTasks) {
 			// print(" -- task ``task.name ``parent: ``task.project?.name else "<null>"`` : taskpath = ``task.taskPath()``");
-			if(is Failed err = task.execute(projectRootPath)) {
+			if(is Failed err = task.checkAndExecute(projectRootPath)) {
 				err.cause.printIndented(console.error);
 				return errorCode;
 			}

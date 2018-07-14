@@ -41,6 +41,8 @@ shared class TestDirEntry(Directory|TestDirEntry parent, shared String name/*, {
 	shared /*actual*/ Path parentPath = if(is Directory parent) then parent.path else parent.path;
 	shared actual Path path = parentPath.childPath(name);
 
+	shared actual String string => path.string;
+	
 	shared AbsolutePath absolutePath(String* children) =>  AbsolutePath(path).add(*children);
 	
 	assert(is Nil res = parentPath.childPath(name).resource);
@@ -71,6 +73,8 @@ shared class TestDirEntry(Directory|TestDirEntry parent, shared String name/*, {
 shared class TestFileEntry(Directory|TestDirEntry parent, String name, String|<Byte[]>? content = null) satisfies TestEntry {
 	shared /*actual*/ Path parentPath = if(is Directory parent) then parent.path else parent.path;
 	shared actual Path path = parentPath.childPath(name);
+	
+	shared actual String string => path.string;
 	
 	assert(is Nil res = path.resource);
 	File file = res.createFile(true);

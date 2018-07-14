@@ -9,6 +9,9 @@ import ceylon.collection {
 import ceylon.language.meta.model {
 	Attribute
 }
+import ceylon.json {
+	JsonObject
+}
 shared interface TaskChecker {
 	shared formal Boolean mustExecute();
 }
@@ -59,26 +62,49 @@ shared abstract class Task (
 	shared variable Cache? cache = null
 )
 {
-	shared default {Input *} inputCacheElements = [];
-	shared default {Output *} outputCacheElements = [];
+	//shared default {Input *} inputCacheElements = [];
+	//shared default {Output *} outputCacheElements = [];
+	
 	
 	shared default Category? category = categories.byName(name);
 	shared default String? description = null;
 	
 	shared TaskPath taskPath() => makeTaskPath(project, name);
+
+	shared default Input input => object satisfies Input {
+		shared actual CacheId id() => CacheId(concatenate(taskPath().elements, ["in"]));
+		
+		shared actual JsonObject|Error toJson(AbsolutePath root) => JsonObject{};
+		
+		shared actual void updateTaskPath(TaskPath newTaskPath) {}
+	};
+	
+	shared default Output output => object satisfies Output {
+		shared actual CacheId id() => CacheId(concatenate(taskPath().elements, ["out"]));
+		
+		shared actual JsonObject|Error toJson(AbsolutePath root) => JsonObject{};
+		
+		shared actual void updateTaskPath(TaskPath newTaskPath) {}
+		
+		shared actual Error|Boolean updateFrom(JsonObject content, AbsolutePath root) => false;	// TODO: ???
+		
+	};
 	
 	shared MutableList<Task> dependencies = ArrayList<Task>();
 	shared MutableList<Task> runAfterTasks = ArrayList<Task>();
 	shared MutableList<CacheElement> cacheElementDependencies = ArrayList<CacheElement>();
 	
-	"null : not executed yet"
+	" - null : not executed yet
+	  - Success : executed 
+	  - Failed : executed, failed (including if a dependency failed)
+	 "
 	shared variable <TaskResult|Null> lastResult = null;
 	
 	shared void updateParent(Project ? newParent) {
 		this.project = newParent;
 		TaskPath tp = taskPath();
-		inputCacheElements*.updateTaskPath(tp);
-		outputCacheElements*.updateTaskPath(tp);
+		input.updateTaskPath(tp);
+		output.updateTaskPath(tp);
 	}
 	
 	shared default void addDependency<T>(T task, {Attribute<T, CacheElement> *} attrs) given T satisfies Task {
@@ -98,8 +124,41 @@ shared abstract class Task (
 	
 	
 	TaskResult executeWithCache(<TaskResult>(AbsolutePath) delegate) (AbsolutePath projectRootPath ) {
-		// TODO: implement it
-		return delegate(projectRootPath);
+		variable TaskResult taskResult;
+		
+		if(exists cache = this.cache) {
+			if(cache.match(input, projectRootPath)) { // 
+				switch(updated = cache.updateTo(output, projectRootPath))
+				case(is Error) {
+					taskResult = Failed(Error("Error updating cache to (disk) data, task ``taskPath()``", [updated])); 
+				}
+				case(is Boolean) {
+					taskResult = FromCache(updated);
+				}
+//
+//				if(exists err = cache.updateTo(output, projectRootPath)) {
+//					taskResult = Failed(Error("Error updating cache to (disk) data, task ``taskPath()``", [err])); 
+//				} else {
+//					taskResult = fromCache;
+//				}
+			} else {
+				
+				if(exists err = cache.updateFrom(input, projectRootPath)) {
+					taskResult = Failed(Error("Error updating cache from (disk) data, task ``taskPath()``", [err])); 
+				} else {
+					taskResult = delegate(projectRootPath);
+					
+					if(exists err = cache.updateFrom(output, projectRootPath)) {
+						taskResult = Failed(Error("Error updating cached task output from (disk) data, task ``taskPath()``", [err])); 
+					}
+				}
+			}
+		} else {
+			taskResult = delegate(projectRootPath);
+		}
+		
+		
+		return taskResult;
 	}
 	
 	TaskResult checkDependenciesAndRun(TaskResult(AbsolutePath) delegate) (AbsolutePath projectRootPath ) {
@@ -118,6 +177,9 @@ shared abstract class Task (
 		return delegate(projectRootPath);
 	}
 	
+	" Execution algo:
+	 - Check if dependant tasks have been succesfully executed.
+	 "
 	shared TaskResult checkAndExecute(AbsolutePath projectRootPath ) {
 		
 		variable<TaskResult>(AbsolutePath) runner = execute;

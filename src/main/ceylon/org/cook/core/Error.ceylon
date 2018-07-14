@@ -31,3 +31,17 @@ class Error
 		}
 	}
 }
+
+shared class ErrorBuilder() {
+	variable Error[] errors = [];
+	
+	shared void addError(Error cause) => errors = errors.append([cause]);
+	shared void add(String message, Error[] causes = [], Throwable? throwable = null) 
+			=> addError(Error(message, causes, throwable));
+	
+	shared Boolean hasErrors => !errors.empty;
+	shared Integer count => errors.size;
+	
+	shared Error build(String message, Throwable? throwable = null) => Error(message, errors, throwable);
+}
+
