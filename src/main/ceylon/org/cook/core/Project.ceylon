@@ -108,6 +108,12 @@ shared class Project(shared String name, shared String dirName = name) {
 		}
 	}
 	
+	shared Project addChild(Project child) {
+		child.updateParent(this);
+		internalChildren.add(child);
+		return child;
+	}
+	
 	shared ChildTask addTask<ChildTask>(ChildTask child) given ChildTask satisfies Task {
 		child.updateParent(this);
 		internalTasks.add(child);

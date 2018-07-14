@@ -22,17 +22,6 @@ import org.cook.core.filesystem {
 	RelativePath
 }
 
-//shared class JarOperation {
-//	"Command-line letter" shared String val;
-//	shared new (String val) {
-//		this.val = val;
-//	}
-//
-//	shared new create extends JarOperation("c") {}
-//	shared new extract extends JarOperation("x") {}
-//	
-//}
-
 
 
 

@@ -126,7 +126,7 @@ void createClassesFile(
 	Path classesFilePath,
 	"Project base path (directory where the java tool will be called from)"
 	Path projectBasePath,
-	"Java sources directory"
+	"Java sources directory (from root)"
 	RelativePath srcDirectoryPath
 )
 {

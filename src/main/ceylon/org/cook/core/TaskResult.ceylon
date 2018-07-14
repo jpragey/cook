@@ -20,6 +20,7 @@ shared class FromCache(shared Boolean updated) satisfies TaskResult {	// TODO:
 			return false;
 		}
 	}
+	shared actual String string => "FromCache(updated=``updated``)";
 	
 }
 //shared object fromCache satisfies TaskResult {	// TODO: 

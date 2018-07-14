@@ -45,11 +45,13 @@ shared class JavaCompileTask(
 {
 	category = categories.build;
 	
+	RelativePath basePath => projectPath(project).basePath;
+	
 	shared actual Input input => object satisfies Input {
 		shared actual CacheId id() => CacheId(taskPath().elements.append(["in"]));
 
 		shared actual JsonObject/*|Error*/ toJson(AbsolutePath root) => JsonObject{
-			"source" -> FileTree(root).jsonContent(srcDirRPath)
+			"source" -> FileTree(root).jsonContent(basePath + srcDirRPath)
 		};
 		
 		shared actual void updateTaskPath(TaskPath newTaskPath) {}
@@ -61,7 +63,7 @@ shared class JavaCompileTask(
 		shared actual CacheId id() => CacheId(taskPath().elements.append(["out"]));
 		
 		shared actual JsonObject|Error toJson(AbsolutePath root) => JsonObject{
-			"target" -> FileTree(root).jsonContent(targetDirRPath)
+			"target" -> FileTree(root).jsonContent(basePath + targetDirRPath)
 		};
 		
 		shared actual Error|Boolean updateFrom(JsonObject content, AbsolutePath root) {
@@ -90,7 +92,7 @@ shared class JavaCompileTask(
 				root = root;
 				classesFilePath = classesFilePath;
 				projectBasePath = projectBase.path;
-				srcDirectoryPath = srcDirRPath;
+				srcDirectoryPath = basePath + srcDirRPath;
 			};
 			
 			OverwriteFileOutput logFilePath(String fileName) => 
